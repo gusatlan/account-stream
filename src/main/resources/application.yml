@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: account-stream
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
+    time-zone: America/Sao_Paulo
+
+  # MongoDB
+  data:
+    mongodb:
+      database: bank
+      repositories:
+        enabled: true
+      auto-index-creation: true
+      uri: mongodb://${DB_USERNAME:root}:${DB_PASSWORD:Ora1626X}@${DB:db}/bank
+
+  # Kafka
+  kafka:
+    producer:
+      retries: 5
+      acks: all
+
+  # Cloud Stream
+  cloud:
+    stream:
+      kafka:
+        binder:
+          autoCreateTopics: true
+          autoAddPartitions: true
+          configuration:
+            isolation:
+              level: read_committed
+          brokers: ${KAFKA_HOST:kafka:9092}
+      function:
+        definition: upsertBankAccountPersist;upsertBankAccountEventPersist
+      bindings:
+        upsertBankAccountPersist-in-0:
+          destination: ${spring.application.name}-upsert-bank-account
+          group: ${spring.application.name}-bank-account
+        upsertBankAccountPersist-out-0:
+          destination: ${spring.application.name}-upsert-bank-account-success
+          group: ${spring.application.name}-bank-account
+
+        upsertBankAccountEventPersist-in-0:
+          destination: ${spring.application.name}-upsert-bank-account-event
+          group: ${spring.application.name}-bank-account-event
+        upsertBankAccountEventPersist-out-0:
+          destination: ${spring.application.name}-upsert-bank-account-event-success
+          group: ${spring.application.name}-bank-account-event
