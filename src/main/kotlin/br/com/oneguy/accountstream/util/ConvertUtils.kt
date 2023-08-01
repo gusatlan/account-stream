@@ -31,6 +31,15 @@ fun cleanCodeText(text: String?): String {
     }
 }
 
+fun cleanCodeTextWithoutUnderscore(text: String?) : String {
+    return if (text != null) {
+        val pattern = "[_\\W]*".toRegex()
+        pattern.replace(text.trim(), "").uppercase()
+    } else {
+        ""
+    }
+}
+
 fun clean(text: String?): String {
     return text?.trim()?.lowercase() ?: ""
 }

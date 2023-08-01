@@ -74,6 +74,13 @@ fun BankAccountEventDTO.transform(): BankAccountEvent {
     )
 }
 
+// TODO Construir mappers Debezium -> BankAccountDTO e BankAccountEventDTO
+// TODO Testes unitários dos mappers Debezium
+// TODO Teste manual debezium -> kafka
+// TODO docker-compose contendo todos os apps, kafka, pgsql, mongo
+// TODO Documentação
+
+
 
 
 
