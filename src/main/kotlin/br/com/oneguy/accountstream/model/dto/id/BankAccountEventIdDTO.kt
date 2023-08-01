@@ -1,11 +1,11 @@
-package br.com.oneguy.accountstream.model.persist.id
+package br.com.oneguy.accountstream.model.dto.id
 
 import br.com.oneguy.accountstream.util.cleanCodeText
 
-class BankAccountEventId(
-    customerId: String = "",
-    accountId: String = "",
-    eventId: String = ""
+class BankAccountEventIdDTO(
+    customerId: String="",
+    accountId: String="",
+    eventId: String=""
 ) {
 
     val customerId = cleanCodeText(customerId).lowercase()
@@ -13,7 +13,7 @@ class BankAccountEventId(
     val eventId = cleanCodeText(eventId).lowercase()
 
     override fun equals(other: Any?) = other != null &&
-            other is BankAccountEventId &&
+            other is BankAccountEventIdDTO &&
             customerId == other.customerId &&
             accountId == other.accountId &&
             eventId == other.eventId

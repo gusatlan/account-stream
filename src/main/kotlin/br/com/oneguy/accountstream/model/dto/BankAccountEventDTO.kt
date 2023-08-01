@@ -1,23 +1,21 @@
-package br.com.oneguy.accountstream.model.persist
+package br.com.oneguy.accountstream.model.dto
 
-import br.com.oneguy.accountstream.model.persist.id.BankAccountEventId
-import org.springframework.data.annotation.Id
-import org.springframework.data.mongodb.core.mapping.Document
+import br.com.oneguy.accountstream.model.dto.id.BankAccountEventIdDTO
+import br.com.oneguy.accountstream.model.persist.EventTransactionTypeEnum
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
-@Document(collection = "account_events")
-data class BankAccountEvent(
-    @field:Id val id: BankAccountEventId = BankAccountEventId(),
+data class BankAccountEventDTO(
+    val id: BankAccountEventIdDTO = BankAccountEventIdDTO(),
     val type: EventTransactionTypeEnum = EventTransactionTypeEnum.DEPOSIT,
     val date: LocalDateTime = LocalDateTime.now(),
     val value: BigDecimal = BigDecimal.ZERO
-) : Comparable<BankAccountEvent> {
-
-    override fun equals(other: Any?) = other != null && other is BankAccountEvent && id == other.id
+) : Comparable<BankAccountEventDTO> {
+    override fun equals(other: Any?) = other != null && other is BankAccountEventDTO && id == other.id
     override fun hashCode() = id.hashCode()
     override fun toString() = """{"id": $id, "type": "$type", "date": "$date", "value": $value}"""
-    override fun compareTo(other: BankAccountEvent): Int {
+
+    override fun compareTo(other: BankAccountEventDTO): Int {
         val compares = listOf(
             id.customerId.compareTo(other.id.customerId),
             id.accountId.compareTo(other.id.accountId),
@@ -33,5 +31,12 @@ data class BankAccountEvent(
         }
 
         return comp
+    }
+
+    fun computeValue(): BigDecimal {
+        return when (type) {
+            EventTransactionTypeEnum.DEPOSIT -> value.abs()
+            EventTransactionTypeEnum.WITHDRAWN -> value.abs().negate()
+        }
     }
 }

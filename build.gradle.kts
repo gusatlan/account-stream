@@ -18,7 +18,7 @@ repositories {
     mavenCentral()
 }
 
-extra["springCloudVersion"] = "2022.0.3"
+extra["springCloudVersion"] = "2022.0.1"
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
@@ -52,4 +52,7 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    testLogging {
+        events("passed", "skipped", "failed")
+    }
 }

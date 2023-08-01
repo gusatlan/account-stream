@@ -1,6 +1,27 @@
 version: "3"
 services:
-  db:
+  zookeeper:
+    image: 'bitnami/zookeeper:3.6.1'
+    networks:
+      - account-network
+    ports:
+      - "2181:2181"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    restart: always
+  kafka:
+    image: 'bitnami/kafka:2.5.0'
+    networks:
+      - account-network
+    ports:
+      - "9092:9092"
+    environment:
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+    depends_on:
+      - zookeeper
+  mongo:
     image: mongo:4.4.6
     ports:
       - "27017-27019:27017-27019"
@@ -10,11 +31,11 @@ services:
     volumes:
       - "account_stream_data:/data/db"
     networks:
-      - account-stream-network
+      - account-network
   mongo-express:
     image: mongo-express
     depends_on:
-      - db
+      - mongo
     ports:
       - "8085:8081"
     environment:
@@ -22,23 +43,23 @@ services:
       ME_CONFIG_MONGODB_ADMINPASSWORD: secret
       ME_CONFIG_MONGODB_SERVER: mongo
     networks:
-      - account-stream-network
+      - account-network
   app:
     image: account-stream-img:latest
     environment:
       KAFKA_HOST: kafka
-      DB_HOST: db
+      DB_HOST: mongo
       DB_USERNAME: root
       DB_PASSWORD: secret
       DB_NAME: bank
     networks:
-      - account-stream-network
+      - account-network
     depends_on:
-#      - kafka
-      - db
+      - kafka
+      - mongo
     restart: on-failure
 volumes:
   account_stream_data:
 networks:
-  account-stream-network:
+  account-network:
     driver: bridge
