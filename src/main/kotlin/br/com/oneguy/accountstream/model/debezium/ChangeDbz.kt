@@ -4,7 +4,7 @@ import br.com.oneguy.accountstream.util.cleanCodeTextWithoutUnderscore
 import com.fasterxml.jackson.annotation.JsonIgnore
 
 data class ChangeDbz(
-    val changes: Map<String, String> = emptyMap()
+    val changes: Map<String, String?> = emptyMap()
 ) {
 
     @JsonIgnore

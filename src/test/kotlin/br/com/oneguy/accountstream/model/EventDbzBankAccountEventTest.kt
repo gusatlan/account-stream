@@ -1,16 +1,18 @@
 package br.com.oneguy.accountstream.model
 
+import br.com.oneguy.accountstream.mapper.transformPersistRequestBankAccountEvent
 import br.com.oneguy.accountstream.model.debezium.ChangeDbz
 import br.com.oneguy.accountstream.model.debezium.EventDbz
 import br.com.oneguy.accountstream.model.debezium.PayloadDbz
 import br.com.oneguy.accountstream.model.persist.EventTransactionTypeEnum
+import br.com.oneguy.accountstream.model.persist.EventTypeEnum
 import br.com.oneguy.accountstream.util.mapper
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
-class EventDbzTest {
+class EventDbzBankAccountEventTest {
 
     private fun createChangeDbz(
         type: EventTransactionTypeEnum = EventTransactionTypeEnum.DEPOSIT,
@@ -28,16 +30,19 @@ class EventDbzTest {
         return ChangeDbz(map)
     }
 
-    private fun createPayloadCreate() = PayloadDbz(after = createChangeDbz(value= BigDecimal("1444.22")))
+    private fun createPayloadCreate() = PayloadDbz(after = createChangeDbz(value = BigDecimal("1444.22")))
 
     private fun createPayloadUpdate() = PayloadDbz(
-        before = createChangeDbz(value=BigDecimal("1444.22")),
-        after = createChangeDbz(type = EventTransactionTypeEnum.WITHDRAWN, value=BigDecimal("1444.22"))
+        before = createChangeDbz(value = BigDecimal("1444.22")),
+        after = createChangeDbz(type = EventTransactionTypeEnum.WITHDRAWN, value = BigDecimal("1444.22"))
     )
 
     private fun createPayloadDelete() = PayloadDbz(
-        before = createChangeDbz(type = EventTransactionTypeEnum.WITHDRAWN, value=BigDecimal("1444.22"))
+        before = createChangeDbz(type = EventTransactionTypeEnum.WITHDRAWN, value = BigDecimal("1444.22"))
     )
+
+    private fun createPayloadNone() = PayloadDbz()
+
 
     @Test
     fun shouldGetValue() {
@@ -74,34 +79,75 @@ class EventDbzTest {
         Assertions.assertNotNull(obj3.payload.before)
         Assertions.assertNotNull(unmarshall3.payload.before)
 
-        Assertions.assertEquals(obj1.payload.after!!.changes["customerId"], unmarshall1.payload.after!!.changes["customerId"])
-        Assertions.assertEquals(obj1.payload.after!!.changes["accountId"], unmarshall1.payload.after!!.changes["accountId"])
+        Assertions.assertEquals(
+            obj1.payload.after!!.changes["customerId"],
+            unmarshall1.payload.after!!.changes["customerId"]
+        )
+        Assertions.assertEquals(
+            obj1.payload.after!!.changes["accountId"],
+            unmarshall1.payload.after!!.changes["accountId"]
+        )
         Assertions.assertEquals(obj1.payload.after!!.changes["eventId"], unmarshall1.payload.after!!.changes["eventId"])
         Assertions.assertEquals(obj1.payload.after!!.changes["type"], unmarshall1.payload.after!!.changes["type"])
         Assertions.assertEquals(obj1.payload.after!!.changes["date"], unmarshall1.payload.after!!.changes["date"])
         Assertions.assertEquals(obj1.payload.after!!.changes["value"], unmarshall1.payload.after!!.changes["value"])
 
-        Assertions.assertEquals(obj2.payload.before!!.changes["customerId"], unmarshall2.payload.before!!.changes["customerId"])
-        Assertions.assertEquals(obj2.payload.before!!.changes["accountId"], unmarshall2.payload.before!!.changes["accountId"])
-        Assertions.assertEquals(obj2.payload.before!!.changes["eventId"], unmarshall2.payload.before!!.changes["eventId"])
+        Assertions.assertEquals(
+            obj2.payload.before!!.changes["customerId"],
+            unmarshall2.payload.before!!.changes["customerId"]
+        )
+        Assertions.assertEquals(
+            obj2.payload.before!!.changes["accountId"],
+            unmarshall2.payload.before!!.changes["accountId"]
+        )
+        Assertions.assertEquals(
+            obj2.payload.before!!.changes["eventId"],
+            unmarshall2.payload.before!!.changes["eventId"]
+        )
         Assertions.assertEquals(obj2.payload.before!!.changes["type"], unmarshall2.payload.before!!.changes["type"])
         Assertions.assertEquals(obj2.payload.before!!.changes["date"], unmarshall2.payload.before!!.changes["date"])
         Assertions.assertEquals(obj2.payload.before!!.changes["value"], unmarshall2.payload.before!!.changes["value"])
 
-        Assertions.assertEquals(obj2.payload.after!!.changes["customerId"], unmarshall2.payload.after!!.changes["customerId"])
-        Assertions.assertEquals(obj2.payload.after!!.changes["accountId"], unmarshall2.payload.after!!.changes["accountId"])
+        Assertions.assertEquals(
+            obj2.payload.after!!.changes["customerId"],
+            unmarshall2.payload.after!!.changes["customerId"]
+        )
+        Assertions.assertEquals(
+            obj2.payload.after!!.changes["accountId"],
+            unmarshall2.payload.after!!.changes["accountId"]
+        )
         Assertions.assertEquals(obj2.payload.after!!.changes["eventId"], unmarshall2.payload.after!!.changes["eventId"])
         Assertions.assertEquals(obj2.payload.after!!.changes["type"], unmarshall2.payload.after!!.changes["type"])
         Assertions.assertEquals(obj2.payload.after!!.changes["date"], unmarshall2.payload.after!!.changes["date"])
         Assertions.assertEquals(obj2.payload.after!!.changes["value"], unmarshall2.payload.after!!.changes["value"])
 
-        Assertions.assertEquals(obj3.payload.before!!.changes["customerId"], unmarshall3.payload.before!!.changes["customerId"])
-        Assertions.assertEquals(obj3.payload.before!!.changes["accountId"], unmarshall3.payload.before!!.changes["accountId"])
-        Assertions.assertEquals(obj3.payload.before!!.changes["eventId"], unmarshall3.payload.before!!.changes["eventId"])
+        Assertions.assertEquals(
+            obj3.payload.before!!.changes["customerId"],
+            unmarshall3.payload.before!!.changes["customerId"]
+        )
+        Assertions.assertEquals(
+            obj3.payload.before!!.changes["accountId"],
+            unmarshall3.payload.before!!.changes["accountId"]
+        )
+        Assertions.assertEquals(
+            obj3.payload.before!!.changes["eventId"],
+            unmarshall3.payload.before!!.changes["eventId"]
+        )
         Assertions.assertEquals(obj3.payload.before!!.changes["type"], unmarshall3.payload.before!!.changes["type"])
         Assertions.assertEquals(obj3.payload.before!!.changes["date"], unmarshall3.payload.before!!.changes["date"])
         Assertions.assertEquals(obj3.payload.before!!.changes["value"], unmarshall3.payload.before!!.changes["value"])
     }
 
+    @Test
+    fun shouldTransformToPersistRequest() {
+        val obj1 = createPayloadCreate().transformPersistRequestBankAccountEvent()
+        val obj2 = createPayloadUpdate().transformPersistRequestBankAccountEvent()
+        val obj3 = createPayloadDelete().transformPersistRequestBankAccountEvent()
+        val obj4 = createPayloadNone().transformPersistRequestBankAccountEvent()
 
+        Assertions.assertEquals(EventTypeEnum.INSERT, obj1.type)
+        Assertions.assertEquals(EventTypeEnum.UPDATE, obj2.type)
+        Assertions.assertEquals(EventTypeEnum.DELETE, obj3.type)
+        Assertions.assertEquals(EventTypeEnum.NONE, obj4.type)
+    }
 }

@@ -1,6 +1,8 @@
 package br.com.oneguy.accountstream.service
 
 import br.com.oneguy.accountstream.mapper.transform
+import br.com.oneguy.accountstream.mapper.transformPersistRequestBankAccount
+import br.com.oneguy.accountstream.model.debezium.EventDbz
 import br.com.oneguy.accountstream.model.dto.PersistRequestBankAccountDTO
 import br.com.oneguy.accountstream.model.persist.BankAccount
 import br.com.oneguy.accountstream.model.persist.EventTypeEnum
@@ -52,6 +54,7 @@ class BankAccountService(
                 when (request.type) {
                     EventTypeEnum.INSERT, EventTypeEnum.UPDATE -> save(value.transform()).subscribe()
                     EventTypeEnum.DELETE -> remove(value.transform()).subscribe()
+                    else -> logger.error("upsertBankAccountPersist: Event ${request.type}")
                 }
                 Mono.just(request)
             }
@@ -62,7 +65,6 @@ class BankAccountService(
                 logger.error("upsertBankAccountPersist: [ERROR] ", it)
             }
     }
-
 
     @Bean
     fun upsertBankAccountPersist(): Function<Flux<String>, Flux<String>> {
@@ -84,6 +86,26 @@ class BankAccountService(
                 }
                 .doOnError {
                     logger.error("BankAccountService:upsertBankAccountPersist $it")
+                }
+        }
+    }
+
+    @Bean
+    fun transformLegacyBankAccount(): Function<Flux<EventDbz>, Flux<String>> {
+        return Function { dbEvent ->
+            dbEvent.doOnNext {
+                logger.info("BankAccountService:transformLegacyBankAccount: [RECEIVED] $it")
+            }
+                .map { it.payload.transformPersistRequestBankAccount() }
+                .doOnNext {
+                    logger.info("BankAccountService:transformLegacyBankAccount: [TRANSFORMED] $it")
+                }
+                .map { mapper.writeValueAsString(it) }
+                .doOnNext {
+                    logger.info("BankAccountService:transformLegacyBankAccount: [PROCESSED] $it")
+                }
+                .doOnError {
+                    logger.error("BankAccountService:transformLegacyBankAccount $it")
                 }
         }
     }

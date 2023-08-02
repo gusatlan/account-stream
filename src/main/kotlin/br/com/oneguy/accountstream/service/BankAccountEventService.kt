@@ -1,7 +1,8 @@
 package br.com.oneguy.accountstream.service
 
 import br.com.oneguy.accountstream.mapper.transform
-import br.com.oneguy.accountstream.model.dto.BankAccountEventDTO
+import br.com.oneguy.accountstream.mapper.transformPersistRequestBankAccountEvent
+import br.com.oneguy.accountstream.model.debezium.EventDbz
 import br.com.oneguy.accountstream.model.dto.PersistRequestBankAccountEventDTO
 import br.com.oneguy.accountstream.model.persist.BankAccountEvent
 import br.com.oneguy.accountstream.model.persist.EventTypeEnum
@@ -45,6 +46,7 @@ class BankAccountEventService(
                 when (request.type) {
                     EventTypeEnum.INSERT, EventTypeEnum.UPDATE -> save(value.transform()).subscribe()
                     EventTypeEnum.DELETE -> remove(value.transform()).subscribe()
+                    else -> logger.error("upsertBankAccountEventPersist: Event ${request.type}")
                 }
                 Mono.just(request)
             }
@@ -71,6 +73,26 @@ class BankAccountEventService(
                 }
                 .doOnError {
                     logger.error("BankAccountEventService:upsertBankAccountEventPersist $it")
+                }
+        }
+    }
+
+    @Bean
+    fun transformLegacyBankAccountEvent(): Function<Flux<EventDbz>, Flux<String>> {
+        return Function { dbEvent ->
+            dbEvent.doOnNext {
+                logger.info("BankAccountEventService:transformLegacyBankAccountEvent: [RECEIVED] $it")
+            }
+                .map { it.payload.transformPersistRequestBankAccountEvent() }
+                .doOnNext {
+                    logger.info("BankAccountEventService:transformLegacyBankAccountEvent: [TRANSFORMED] $it")
+                }
+                .map { mapper.writeValueAsString(it) }
+                .doOnNext {
+                    logger.info("BankAccountEventService:transformLegacyBankAccountEvent: [PROCESSED] $it")
+                }
+                .doOnError {
+                    logger.error("BankAccountEventService:transformLegacyBankAccountEvent $it")
                 }
         }
     }
