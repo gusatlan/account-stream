@@ -80,7 +80,9 @@ class BankAccountService(
                 .flatMap {
                     upsertStream(mapper.readValue(it, PersistRequestBankAccountDTO::class.java))
                 }
-                .map { mapper.writeValueAsString(it) }
+                .map {
+                    mapper.writeValueAsString(it)
+                }
                 .doOnNext {
                     logger.info("upsertBankAccountPersist: [PROCESSED] $it")
                 }
@@ -91,11 +93,14 @@ class BankAccountService(
     }
 
     @Bean
-    fun transformLegacyBankAccount(): Function<Flux<EventDbz>, Flux<String>> {
+    fun transformLegacyBankAccount(): Function<Flux<String>, Flux<String>> {
         return Function { dbEvent ->
             dbEvent.doOnNext {
                 logger.info("BankAccountService:transformLegacyBankAccount: [RECEIVED] $it")
             }
+                .map {
+                    mapper.readValue(it, EventDbz::class.java)
+                }
                 .map {
                     it.payload.transformPersistRequestBankAccount()
                 }

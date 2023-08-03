@@ -86,11 +86,14 @@ class BankAccountEventService(
     }
 
     @Bean
-    fun transformLegacyBankAccountEvent(): Function<Flux<EventDbz>, Flux<String>> {
+    fun transformLegacyBankAccountEvent(): Function<Flux<String>, Flux<String>> {
         return Function { dbEvent ->
             dbEvent.doOnNext {
                 logger.info("BankAccountEventService:transformLegacyBankAccountEvent: [RECEIVED] $it")
             }
+                .map {
+                    mapper.readValue(it, EventDbz::class.java)
+                }
                 .map {
                     it.payload.transformPersistRequestBankAccountEvent()
                 }
