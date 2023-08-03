@@ -1,0 +1,14 @@
+#!/bin/bash
+
+cd ../account
+./make
+
+cd ../account-old
+./make
+
+cd ../account-stream
+./make
+
+docker-compose -f docker-compose-full.yml down
+docker-compose -f docker-compose-full.yml up
+

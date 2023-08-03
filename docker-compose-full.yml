@@ -1,0 +1,124 @@
+version: "3"
+
+volumes:
+  account_stream_data:
+  account_old_data:
+
+networks:
+  account-network:
+    driver: bridge
+
+services:
+  db_pgsql:
+    image: postgres
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=account
+    volumes:
+      - "account_old_data:/var/lib/postgresql/data"
+    networks:
+      - account-network
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+      - "8083:80"
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - PGADMIN_DEFAULT_EMAIL=user@gmail.com
+      - PGADMIN_DEFAULT_PASSWORD=useruser
+    networks:
+      - account-network
+    depends_on:
+      - db_pgsql
+  zookeeper:
+    image: 'bitnami/zookeeper:3.6.1'
+    networks:
+      - account-network
+    ports:
+      - "2181:2181"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    restart: always
+  kafka:
+    image: 'bitnami/kafka:2.5.0'
+    networks:
+      - account-network
+    ports:
+      - "9092:9092"
+    environment:
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+    depends_on:
+      - zookeeper
+  mongo:
+    image: mongo:4.4.6
+    ports:
+      - "27017-27019:27017-27019"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: secret
+    volumes:
+      - "account_stream_data:/data/db"
+    networks:
+      - account-network
+  mongo-express:
+    image: mongo-express
+    depends_on:
+      - mongo
+    ports:
+      - "8085:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: secret
+      ME_CONFIG_MONGODB_SERVER: mongo
+    networks:
+      - account-network
+  app_old:
+    image: account-old-img:latest
+    ports:
+      - "8079:8080"
+    environment:
+      DB_HOST: db_pgsql
+      DB_NAME: account
+      DB_USERNAME: root
+      DB_PASSWORD: root
+    networks:
+      - account-network
+    depends_on:
+      - db_pgsql
+      - pgadmin
+  app:
+    image: account-img:latest
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_HOST: "kafka:9092"
+      DB_HOST: mongo
+      DB_NAME: bank
+      DB_USERNAME: root
+      DB_PASSWORD: secret
+    networks:
+      - account-network
+    depends_on:
+      - mongo
+      - zookeeper
+      - kafka
+    restart: on-failure
+  app_stream:
+    image: account-stream-img:latest
+    environment:
+      KAFKA_HOST: "kafka:9092"
+      DB_HOST: mongo
+      DB_USERNAME: root
+      DB_PASSWORD: secret
+      DB_NAME: bank
+    networks:
+      - account-network
+    depends_on:
+      - zookeeper
+      - kafka
+      - mongo
+    restart: on-failure

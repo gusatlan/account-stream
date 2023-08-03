@@ -13,8 +13,20 @@ Desenvolvido para lidar com o *event-stream* das transações de contas.
 2. Escutar o tópico de atualização de dados para o MongoDB;
     1. Persistir ou excluir os dados no MongoDB;
 
+Note que esse projeto se encarrega de 4 tópicos kafka
+
+1. Tópicos de transformação dos eventos das tabelas **account** e **account_transaction**;
+2. Tópicos de atualização no Mongo de **BankAccount** e **BankAccountEvent**;
+
+
 Para executar é necessário ter o docker na máquina
 
 ```
 ./run
+```
+
+Para executar toda a arquitetura:
+
+```
+./runAll
 ```
