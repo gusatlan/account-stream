@@ -91,11 +91,15 @@ class BankAccountEventService(
             dbEvent.doOnNext {
                 logger.info("BankAccountEventService:transformLegacyBankAccountEvent: [RECEIVED] $it")
             }
-                .map { it.payload.transformPersistRequestBankAccountEvent() }
+                .map {
+                    it.payload.transformPersistRequestBankAccountEvent()
+                }
                 .doOnNext {
                     logger.info("BankAccountEventService:transformLegacyBankAccountEvent: [TRANSFORMED] $it")
                 }
-                .map { mapper.writeValueAsString(it) }
+                .map {
+                    mapper.writeValueAsString(it)
+                }
                 .doOnNext {
                     logger.info("BankAccountEventService:transformLegacyBankAccountEvent: [PROCESSED] $it")
                 }
