@@ -5,6 +5,7 @@ import br.com.oneguy.accountstream.model.debezium.ChangeDbz
 import br.com.oneguy.accountstream.model.debezium.PayloadDbz
 import br.com.oneguy.accountstream.model.persist.EventTypeEnum
 import br.com.oneguy.accountstream.util.mapper
+import br.com.oneguy.accountstream.utils.storeJson
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -70,6 +71,10 @@ class EventDbzBankAccountTest {
         Assertions.assertEquals(obj1.after?.getValue("accountId"), unmarshall1.after?.getValue("accountId"))
         Assertions.assertEquals(obj1.after?.getValue("since"), unmarshall1.after?.getValue("since"))
         Assertions.assertEquals(obj1.after?.getValue("expiredAt"), unmarshall1.after?.getValue("expiredAt"))
+
+        storeJson(json=json1, prefixName = "bank_account_1")
+        storeJson(json=json2, prefixName = "bank_account_2")
+        storeJson(json=json3, prefixName = "bank_account_3")
     }
 
     @Test

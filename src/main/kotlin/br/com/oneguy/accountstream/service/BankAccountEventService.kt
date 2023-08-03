@@ -27,15 +27,23 @@ class BankAccountEventService(
     private fun save(value: BankAccountEvent): Mono<BankAccountEvent> {
         return repository
             .save(value)
-            .doOnNext { logger.info("BankAccountEventService:save saved with success $value") }
-            .doOnError { logger.error("BankAccountEventService:save error $value", it) }
+            .doOnNext {
+                logger.info("BankAccountEventService:save saved with success $value")
+            }
+            .doOnError {
+                logger.error("BankAccountEventService:save error $value", it)
+            }
     }
 
     private fun remove(value: BankAccountEvent): Mono<Void> {
         return repository
             .delete(value)
-            .doOnNext { logger.info("BankAccountEventService:remove removed with success $value") }
-            .doOnError { logger.error("BankAccountEventService:remove error $value", it) }
+            .doOnNext {
+                logger.info("BankAccountEventService:remove removed with success $value")
+            }
+            .doOnError {
+                logger.error("BankAccountEventService:remove error $value", it)
+            }
     }
 
     private fun upsertStream(vararg values: PersistRequestBankAccountEventDTO): Flux<PersistRequestBankAccountEventDTO> {

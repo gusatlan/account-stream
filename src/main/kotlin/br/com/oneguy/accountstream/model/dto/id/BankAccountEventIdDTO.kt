@@ -3,9 +3,9 @@ package br.com.oneguy.accountstream.model.dto.id
 import br.com.oneguy.accountstream.util.cleanCodeText
 
 class BankAccountEventIdDTO(
-    customerId: String="",
-    accountId: String="",
-    eventId: String=""
+    customerId: String = "",
+    accountId: String = "",
+    eventId: String = ""
 ) {
 
     val customerId = cleanCodeText(customerId).lowercase()

@@ -90,4 +90,5 @@ class BankAccountTest {
         Assertions.assertEquals(obj1.entity.id, unmarshall.entity.id)
         Assertions.assertEquals(obj1.entity, unmarshall.entity)
     }
+
 }

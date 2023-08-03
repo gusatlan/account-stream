@@ -7,6 +7,7 @@ import br.com.oneguy.accountstream.model.debezium.PayloadDbz
 import br.com.oneguy.accountstream.model.persist.EventTransactionTypeEnum
 import br.com.oneguy.accountstream.model.persist.EventTypeEnum
 import br.com.oneguy.accountstream.util.mapper
+import br.com.oneguy.accountstream.utils.storeJson
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -136,6 +137,10 @@ class EventDbzBankAccountEventTest {
         Assertions.assertEquals(obj3.payload.before!!.changes["type"], unmarshall3.payload.before!!.changes["type"])
         Assertions.assertEquals(obj3.payload.before!!.changes["date"], unmarshall3.payload.before!!.changes["date"])
         Assertions.assertEquals(obj3.payload.before!!.changes["value"], unmarshall3.payload.before!!.changes["value"])
+
+        storeJson(json=json1, prefixName = "bank_account_event_1")
+        storeJson(json=json2, prefixName = "bank_account_event_2")
+        storeJson(json=json3, prefixName = "bank_account_event_3")
     }
 
     @Test
