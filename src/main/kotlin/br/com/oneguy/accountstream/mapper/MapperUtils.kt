@@ -8,6 +8,8 @@ import br.com.oneguy.accountstream.model.dto.PersistRequestBankAccountDTO
 import br.com.oneguy.accountstream.model.dto.PersistRequestBankAccountEventDTO
 import br.com.oneguy.accountstream.model.dto.id.BankAccountEventIdDTO
 import br.com.oneguy.accountstream.model.dto.id.BankAccountIdDTO
+import br.com.oneguy.accountstream.model.old.BankAccountPU
+import br.com.oneguy.accountstream.model.old.BankAccountTransactionPU
 import br.com.oneguy.accountstream.model.persist.BankAccount
 import br.com.oneguy.accountstream.model.persist.BankAccountEvent
 import br.com.oneguy.accountstream.model.persist.EventTransactionTypeEnum
@@ -133,12 +135,50 @@ fun PayloadDbz.transformPersistRequestBankAccountEvent(): PersistRequestBankAcco
     }
 }
 
-// TODO Implementar stream do debezium
-// TODO Teste manual debezium -> kafka
-// TODO docker-compose contendo todos os apps, kafka, pgsql, mongo
-// TODO Documentação
+fun BankAccountPU.transform(): BankAccountDTO {
+    return BankAccountDTO(
+        id = BankAccountIdDTO(
+            customerId = customerId,
+            accountId = accountId.toString()
+        ),
+        since = since,
+        expiredAt = expiredAt
+    )
+}
+
+fun BankAccountPU.transformPersistRequestBankAccount(): PersistRequestBankAccountDTO {
+    return if (updatedAt != null) {
+        PersistRequestBankAccountDTO(EventTypeEnum.UPDATE, transform())
+    } else if (createdAt != null) {
+        PersistRequestBankAccountDTO(EventTypeEnum.INSERT, transform())
+    } else {
+        PersistRequestBankAccountDTO(EventTypeEnum.NONE, transform())
+    }
+}
 
 
+fun BankAccountTransactionPU.transform(): BankAccountEventDTO {
+    return BankAccountEventDTO(
+        id = BankAccountEventIdDTO(
+            customerId = account.customerId,
+            accountId = account.accountId.toString(),
+            eventId = transactionId!!.toString()
+        ),
+        type = type.transform(),
+        date = date,
+        value = value
+    )
+}
+
+fun BankAccountTransactionPU.transformPersistRequestBankAccountEvent(): PersistRequestBankAccountEventDTO {
+    return if (updatedAt != null) {
+        PersistRequestBankAccountEventDTO(EventTypeEnum.UPDATE, transform())
+    } else if (createdAt != null) {
+        PersistRequestBankAccountEventDTO(EventTypeEnum.INSERT, transform())
+    } else {
+        PersistRequestBankAccountEventDTO(EventTypeEnum.NONE, transform())
+    }
+}
 
 
 
