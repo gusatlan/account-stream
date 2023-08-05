@@ -4,6 +4,7 @@ import br.com.oneguy.accountstream.mapper.transform
 import br.com.oneguy.accountstream.mapper.transformPersistRequestBankAccount
 import br.com.oneguy.accountstream.model.debezium.EventDbz
 import br.com.oneguy.accountstream.model.dto.PersistRequestBankAccountDTO
+import br.com.oneguy.accountstream.model.old.BankAccountPU
 import br.com.oneguy.accountstream.model.persist.BankAccount
 import br.com.oneguy.accountstream.model.persist.EventTypeEnum
 import br.com.oneguy.accountstream.repository.BankAccountRepository
@@ -118,4 +119,32 @@ class BankAccountService(
                 }
         }
     }
+
+    @Bean
+    fun transformLegacyBankAccountConnect(): Function<Flux<String>, Flux<String>> {
+        return Function { dbEvent ->
+            dbEvent.doOnNext {
+                logger.info("BankAccountService:transformLegacyBankAccountConnect: [RECEIVED] $it")
+            }
+                .map {
+                    mapper.readValue(it, BankAccountPU::class.java)
+                }
+                .map {
+                    it.transformPersistRequestBankAccount()
+                }
+                .doOnNext {
+                    logger.info("BankAccountService:transformLegacyBankAccountConnect: [TRANSFORMED] $it")
+                }
+                .map {
+                    mapper.writeValueAsString(it)
+                }
+                .doOnNext {
+                    logger.info("BankAccountService:transformLegacyBankAccountConnect: [PROCESSED] $it")
+                }
+                .doOnError {
+                    logger.error("BankAccountService:transformLegacyBankAccountConnect $it")
+                }
+        }
+    }
+
 }

@@ -5,6 +5,7 @@ import br.com.oneguy.accountstream.mapper.transformPersistRequestBankAccount
 import br.com.oneguy.accountstream.model.old.BankAccountPU
 import br.com.oneguy.accountstream.model.persist.EventTypeEnum
 import br.com.oneguy.accountstream.util.mapper
+import br.com.oneguy.accountstream.utils.storeJson
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -39,6 +40,9 @@ class BankAccountPUTest {
         Assertions.assertEquals(obj2, unmarshall2)
         Assertions.assertNull(obj1.updatedAt)
         Assertions.assertNotNull(obj2.updatedAt)
+
+        storeJson(json=json1, prefixName = "bank_account_pu_1")
+        storeJson(json=json2, prefixName = "bank_account_pu_2")
     }
 
     @Test
