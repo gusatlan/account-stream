@@ -76,7 +76,9 @@ class BankAccountEventService(
                 .flatMap {
                     upsertStream(mapper.readValue(it, PersistRequestBankAccountEventDTO::class.java))
                 }
-                .map { mapper.writeValueAsString(it) }
+                .map {
+                    mapper.writeValueAsString(it)
+                }
                 .doOnNext {
                     logger.info("upsertBankAccountEventPersist: [PROCESSED] $it")
                 }
