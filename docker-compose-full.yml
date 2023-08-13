@@ -1,5 +1,7 @@
 version: "3"
 
+# Extraído como modelo em https://github.com/codeedu/kafkaconnect-mysql-elasticsearch/blob/main/docker-compose.yaml
+
 volumes:
   account_stream_data:
   account_old_data:
@@ -22,7 +24,7 @@ services:
   pgadmin:
     image: dpage/pgadmin4
     ports:
-      - "8083:80"
+      - "8084:80"
     environment:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
@@ -33,26 +35,99 @@ services:
     depends_on:
       - db_pgsql
   zookeeper:
-    image: 'bitnami/zookeeper:3.6.1'
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+      - ALLOW_ANONYMOUS_LOGIN=yes
     networks:
       - account-network
     ports:
       - "2181:2181"
-    environment:
-      - ALLOW_ANONYMOUS_LOGIN=yes
     restart: always
   kafka:
-    image: 'bitnami/kafka:2.5.0'
-    networks:
-      - account-network
-    ports:
-      - "9092:9092"
-    environment:
-      - ALLOW_PLAINTEXT_LISTENER=yes
-      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+    image: confluentinc/cp-kafka:latest
     depends_on:
       - zookeeper
+    ports:
+      - "9092:9092"
+      - "9094:9094"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_LISTENERS: INTERNAL://:9092,OUTSIDE://:9094
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,OUTSIDE://host.docker.internal:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,OUTSIDE:PLAINTEXT
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+    extra_hosts:
+      - "host.docker.internal:172.17.0.1"
+    networks:
+      - account-network
+  kafka-connect:
+    image: confluentinc/cp-kafka-connect-base:6.0.0
+    container_name: kafka-connect
+    depends_on:
+      - zookeeper
+      - kafka
+    ports:
+      - 8083:8083
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: "kafka:9092"
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: kafka-connect
+      CONNECT_CONFIG_STORAGE_TOPIC: _connect-configs
+      CONNECT_OFFSET_STORAGE_TOPIC: _connect-offsets
+      CONNECT_STATUS_STORAGE_TOPIC: _connect-status
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
+      CONNECT_LOG4J_ROOT_LOGLEVEL: "INFO"
+      CONNECT_LOG4J_LOGGERS: "org.apache.kafka.connect.runtime.rest=WARN,org.reflections=ERROR"
+      CONNECT_LOG4J_APPENDER_STDOUT_LAYOUT_CONVERSIONPATTERN: "[%d] %p %X{connector.context}%m (%c:%L)%n"
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: "1"
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: "1"
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: "1"
+      CONNECT_PLUGIN_PATH: /usr/share/java,/usr/share/confluent-hub-components,/data/connect-jars
+    volumes:
+      - $PWD/data:/data
+    command:
+      - bash
+      - -c
+      - |
+        echo "Installing Connector"
+        confluent-hub install --no-prompt debezium/debezium-connector-mysql:1.2.2
+        confluent-hub install --no-prompt debezium/debezium-connector-postgres:2.3.2
+        confluent-hub install --no-prompt confluentinc/kafka-connect-elasticsearch:10.0.1
+        #
+        echo "Launching Kafka Connect worker"
+        /etc/confluent/docker/run &
+        #
+        sleep infinity
+    extra_hosts:
+      - "host.docker.internal:172.17.0.1"
+    networks:
+      - account-network
+  control-center:
+    image: confluentinc/cp-enterprise-control-center:6.0.1
+    hostname: control-center
+    depends_on:
+      - kafka
+    ports:
+      - "9021:9021"
+    environment:
+      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'kafka:9092'
+      CONTROL_CENTER_REPLICATION_FACTOR: 1
+      CONTROL_CENTER_CONNECT_CLUSTER: http://kafka-connect:8083
+      PORT: 9021
+    extra_hosts:
+      - "host.docker.internal:172.17.0.1"
+    networks:
+      - account-network
   mongo:
     image: mongo:4.4.6
     ports:
