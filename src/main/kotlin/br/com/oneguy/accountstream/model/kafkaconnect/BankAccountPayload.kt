@@ -8,13 +8,13 @@ class BankAccountPayload(
     val accountId: Long? = null,
     @field:JsonProperty("customer_id")
     val customerId: String = "",
-    val since: LocalDateTime = LocalDateTime.now(),
+    val since: Long = 0L,
     @field:JsonProperty("expired")
-    val expiredAt: LocalDateTime? = null,
+    val expiredAt: Long? = null,
     @field:JsonProperty("created_at")
-    val createdAt: LocalDateTime? = null,
+    val createdAt: Long = 0L,
     @field:JsonProperty("updated_at")
-    val updatedAt: LocalDateTime? = null
+    val updatedAt: Long = 0L
 ) {
 
     override fun equals(other: Any?) = other != null && other is BankAccountPayload && accountId == other.accountId

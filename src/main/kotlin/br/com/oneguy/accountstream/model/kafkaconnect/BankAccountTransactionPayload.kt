@@ -2,18 +2,22 @@ package br.com.oneguy.accountstream.model.kafkaconnect
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.math.BigDecimal
-import java.time.LocalDateTime
 
 class BankAccountTransactionPayload(
+    @field:JsonProperty("transaction_id")
     val transactionId: Long? = null,
-    val type: BankAccountTransactionEnum = BankAccountTransactionEnum.DEPOSIT,
-    val date: LocalDateTime = LocalDateTime.now(),
+    @field:JsonProperty("transaction_type")
+    val type: Int = -1,
+    @field:JsonProperty("transaction_date")
+    val date: Long = 0L,
+    @field:JsonProperty("transaction_value")
     val value: BigDecimal = BigDecimal.ZERO,
-    val account: BankAccountPayload = BankAccountPayload(),
+    @field:JsonProperty("account_id")
+    val accountId: Long = -1,
     @field:JsonProperty("created_at")
-    val createdAt: LocalDateTime? = null,
+    val createdAt: Long = 0L,
     @field:JsonProperty("updated_at")
-    val updatedAt: LocalDateTime? = null
+    val updatedAt: Long = 0L
 ) {
 
     override fun equals(other: Any?) =

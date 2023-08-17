@@ -16,8 +16,11 @@ import br.com.oneguy.accountstream.model.persist.EventTransactionTypeEnum
 import br.com.oneguy.accountstream.model.persist.EventTypeEnum
 import br.com.oneguy.accountstream.model.persist.id.BankAccountEventId
 import br.com.oneguy.accountstream.model.persist.id.BankAccountId
+import br.com.oneguy.accountstream.util.toLocalDateTime
 import java.math.BigDecimal
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneId
 
 fun BankAccountId.transform(): BankAccountIdDTO {
     return BankAccountIdDTO(
@@ -141,8 +144,8 @@ fun BankAccountPayload.transform(): BankAccountDTO {
             customerId = customerId,
             accountId = accountId.toString()
         ),
-        since = since,
-        expiredAt = expiredAt
+        since = since.toLocalDateTime(),
+        expiredAt = expiredAt?.toLocalDateTime()
     )
 }
 
@@ -156,16 +159,15 @@ fun BankAccountPayload.transformPersistRequestBankAccount(): PersistRequestBankA
     }
 }
 
-
 fun BankAccountTransactionPayload.transform(): BankAccountEventDTO {
     return BankAccountEventDTO(
         id = BankAccountEventIdDTO(
-            customerId = account.customerId,
-            accountId = account.accountId.toString(),
+            customerId = "",
+            accountId = accountId.toString(),
             eventId = transactionId!!.toString()
         ),
-        type = type.transform(),
-        date = date,
+        type = EventTransactionTypeEnum.valueOf(type),
+        date = date.toLocalDateTime(),
         value = value
     )
 }
