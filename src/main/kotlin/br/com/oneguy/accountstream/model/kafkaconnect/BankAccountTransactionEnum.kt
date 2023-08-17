@@ -1,4 +1,4 @@
-package br.com.oneguy.accountstream.model.old
+package br.com.oneguy.accountstream.model.kafkaconnect
 
 import br.com.oneguy.accountstream.model.persist.EventTransactionTypeEnum
 

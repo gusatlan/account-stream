@@ -2,7 +2,7 @@ package br.com.oneguy.accountstream.model
 
 import br.com.oneguy.accountstream.mapper.transform
 import br.com.oneguy.accountstream.mapper.transformPersistRequestBankAccount
-import br.com.oneguy.accountstream.model.old.BankAccountPU
+import br.com.oneguy.accountstream.model.kafkaconnect.BankAccountPayload
 import br.com.oneguy.accountstream.model.persist.EventTypeEnum
 import br.com.oneguy.accountstream.util.mapper
 import br.com.oneguy.accountstream.utils.storeJson
@@ -10,12 +10,12 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
-class BankAccountPUTest {
+class BankAccountPayloadTest {
 
-    private fun createBankAccount(updated: Boolean = false): BankAccountPU {
+    private fun createBankAccount(updated: Boolean = false): BankAccountPayload {
         val since = LocalDateTime.of(2023, 8, 5, 8, 10)
 
-        return BankAccountPU(
+        return BankAccountPayload(
             customerId = "zzz",
             accountId = 333,
             since = since,
@@ -33,8 +33,8 @@ class BankAccountPUTest {
         val json1 = mapper.writeValueAsString(obj1)
         val json2 = mapper.writeValueAsString(obj2)
 
-        val unmarshall1 = mapper.readValue(json1, BankAccountPU::class.java)
-        val unmarshall2 = mapper.readValue(json2, BankAccountPU::class.java)
+        val unmarshall1 = mapper.readValue(json1, BankAccountPayload::class.java)
+        val unmarshall2 = mapper.readValue(json2, BankAccountPayload::class.java)
 
         Assertions.assertEquals(obj1, unmarshall1)
         Assertions.assertEquals(obj2, unmarshall2)

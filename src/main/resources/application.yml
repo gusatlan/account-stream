@@ -66,14 +66,14 @@ spring:
           group: account-bank-account-event
 
         transformLegacyBankAccountConnect-in-0:
-          destination: database-bank-account-connect
+          destination: postgresql_account
           group: account-bank-account
         transformLegacyBankAccountConnect-out-0:
           destination: account-upsert-bank-account
           group: account-bank-account
 
         transformLegacyBankAccountEventConnect-in-0:
-          destination: database-bank-account-event-connect
+          destination: postgresql_account_transaction
           group: account-bank-account-event
         transformLegacyBankAccountEventConnect-out-0:
           destination: account-upsert-bank-account-event

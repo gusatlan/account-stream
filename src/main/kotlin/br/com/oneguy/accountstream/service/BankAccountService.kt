@@ -4,7 +4,8 @@ import br.com.oneguy.accountstream.mapper.transform
 import br.com.oneguy.accountstream.mapper.transformPersistRequestBankAccount
 import br.com.oneguy.accountstream.model.debezium.EventDbz
 import br.com.oneguy.accountstream.model.dto.PersistRequestBankAccountDTO
-import br.com.oneguy.accountstream.model.old.BankAccountPU
+import br.com.oneguy.accountstream.model.kafkaconnect.BankAccountMessage
+import br.com.oneguy.accountstream.model.kafkaconnect.BankAccountPayload
 import br.com.oneguy.accountstream.model.persist.BankAccount
 import br.com.oneguy.accountstream.model.persist.EventTypeEnum
 import br.com.oneguy.accountstream.repository.BankAccountRepository
@@ -127,7 +128,7 @@ class BankAccountService(
                 logger.info("BankAccountService:transformLegacyBankAccountConnect: [RECEIVED] $it")
             }
                 .map {
-                    mapper.readValue(it, BankAccountPU::class.java)
+                    mapper.readValue(it, BankAccountMessage::class.java).payload
                 }
                 .map {
                     it.transformPersistRequestBankAccount()

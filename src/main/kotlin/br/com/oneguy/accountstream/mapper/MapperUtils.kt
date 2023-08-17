@@ -8,8 +8,8 @@ import br.com.oneguy.accountstream.model.dto.PersistRequestBankAccountDTO
 import br.com.oneguy.accountstream.model.dto.PersistRequestBankAccountEventDTO
 import br.com.oneguy.accountstream.model.dto.id.BankAccountEventIdDTO
 import br.com.oneguy.accountstream.model.dto.id.BankAccountIdDTO
-import br.com.oneguy.accountstream.model.old.BankAccountPU
-import br.com.oneguy.accountstream.model.old.BankAccountTransactionPU
+import br.com.oneguy.accountstream.model.kafkaconnect.BankAccountPayload
+import br.com.oneguy.accountstream.model.kafkaconnect.BankAccountTransactionPayload
 import br.com.oneguy.accountstream.model.persist.BankAccount
 import br.com.oneguy.accountstream.model.persist.BankAccountEvent
 import br.com.oneguy.accountstream.model.persist.EventTransactionTypeEnum
@@ -135,7 +135,7 @@ fun PayloadDbz.transformPersistRequestBankAccountEvent(): PersistRequestBankAcco
     }
 }
 
-fun BankAccountPU.transform(): BankAccountDTO {
+fun BankAccountPayload.transform(): BankAccountDTO {
     return BankAccountDTO(
         id = BankAccountIdDTO(
             customerId = customerId,
@@ -146,7 +146,7 @@ fun BankAccountPU.transform(): BankAccountDTO {
     )
 }
 
-fun BankAccountPU.transformPersistRequestBankAccount(): PersistRequestBankAccountDTO {
+fun BankAccountPayload.transformPersistRequestBankAccount(): PersistRequestBankAccountDTO {
     return if (updatedAt != null) {
         PersistRequestBankAccountDTO(EventTypeEnum.UPDATE, transform())
     } else if (createdAt != null) {
@@ -157,7 +157,7 @@ fun BankAccountPU.transformPersistRequestBankAccount(): PersistRequestBankAccoun
 }
 
 
-fun BankAccountTransactionPU.transform(): BankAccountEventDTO {
+fun BankAccountTransactionPayload.transform(): BankAccountEventDTO {
     return BankAccountEventDTO(
         id = BankAccountEventIdDTO(
             customerId = account.customerId,
@@ -170,7 +170,7 @@ fun BankAccountTransactionPU.transform(): BankAccountEventDTO {
     )
 }
 
-fun BankAccountTransactionPU.transformPersistRequestBankAccountEvent(): PersistRequestBankAccountEventDTO {
+fun BankAccountTransactionPayload.transformPersistRequestBankAccountEvent(): PersistRequestBankAccountEventDTO {
     return if (updatedAt != null) {
         PersistRequestBankAccountEventDTO(EventTypeEnum.UPDATE, transform())
     } else if (createdAt != null) {

@@ -2,9 +2,9 @@ package br.com.oneguy.accountstream.model
 
 import br.com.oneguy.accountstream.mapper.transform
 import br.com.oneguy.accountstream.mapper.transformPersistRequestBankAccountEvent
-import br.com.oneguy.accountstream.model.old.BankAccountPU
-import br.com.oneguy.accountstream.model.old.BankAccountTransactionEnum
-import br.com.oneguy.accountstream.model.old.BankAccountTransactionPU
+import br.com.oneguy.accountstream.model.kafkaconnect.BankAccountPayload
+import br.com.oneguy.accountstream.model.kafkaconnect.BankAccountTransactionEnum
+import br.com.oneguy.accountstream.model.kafkaconnect.BankAccountTransactionPayload
 import br.com.oneguy.accountstream.model.persist.EventTypeEnum
 import br.com.oneguy.accountstream.util.mapper
 import br.com.oneguy.accountstream.utils.storeJson
@@ -23,11 +23,11 @@ class BankAccountEventPUTest {
         value: BigDecimal = BigDecimal("1543.28"),
         createdAt: LocalDateTime = LocalDateTime.now(),
         updateAt: LocalDateTime? = null
-    ): BankAccountTransactionPU {
+    ): BankAccountTransactionPayload {
         val date = LocalDateTime.of(2023, 8, 5, 8, 22)
 
-        return BankAccountTransactionPU(
-            account = BankAccountPU(
+        return BankAccountTransactionPayload(
+            account = BankAccountPayload(
                 customerId = customerId,
                 accountId = accountId,
                 since = date,
@@ -55,8 +55,8 @@ class BankAccountEventPUTest {
         val json1 = mapper.writeValueAsString(obj1)
         val json2 = mapper.writeValueAsString(obj2)
 
-        val unmarshall1 = mapper.readValue(json1, BankAccountTransactionPU::class.java)
-        val unmarshall2 = mapper.readValue(json2, BankAccountTransactionPU::class.java)
+        val unmarshall1 = mapper.readValue(json1, BankAccountTransactionPayload::class.java)
+        val unmarshall2 = mapper.readValue(json2, BankAccountTransactionPayload::class.java)
 
         Assertions.assertEquals(obj1, unmarshall1)
         Assertions.assertEquals(obj2, unmarshall2)
