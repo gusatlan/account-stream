@@ -30,3 +30,20 @@ Para executar toda a arquitetura:
 ```
 ./runAll
 ```
+
+## Kafka Connect
+
+É usado para migrar os dados do serviço antigo **account-old** para tópico kafka do **account-stream** e esse realiza a atualização no banco de dados Mongo.
+
+Para configurar o *Kafka Connect* vá em http://localhost:9021 (*Control Center*)
+
+1. Clicar em *CO Cluster 1*;
+2. Clicar no menu *Connect*;
+3. Clicar em *connect-default*;
+4. Clicar em *Add connector*;
+5. Clicar em *Upload connector config file*;
+6. Selecionar o arquivo **connector_postgres-connector_config.properties**;
+7. Clicar em *Continue*;
+8. Clicar em *Launch*;
+
+
