@@ -2,10 +2,8 @@ package br.com.oneguy.accountstream.service
 
 import br.com.oneguy.accountstream.mapper.transform
 import br.com.oneguy.accountstream.mapper.transformPersistRequestBankAccount
-import br.com.oneguy.accountstream.model.debezium.EventDbz
 import br.com.oneguy.accountstream.model.dto.PersistRequestBankAccountDTO
 import br.com.oneguy.accountstream.model.kafkaconnect.BankAccountMessage
-import br.com.oneguy.accountstream.model.kafkaconnect.BankAccountPayload
 import br.com.oneguy.accountstream.model.persist.BankAccount
 import br.com.oneguy.accountstream.model.persist.EventTypeEnum
 import br.com.oneguy.accountstream.repository.BankAccountRepository
@@ -90,33 +88,6 @@ class BankAccountService(
                 }
                 .doOnError {
                     logger.error("BankAccountService:upsertBankAccountPersist $it")
-                }
-        }
-    }
-
-    @Bean
-    fun transformLegacyBankAccount(): Function<Flux<String>, Flux<String>> {
-        return Function { dbEvent ->
-            dbEvent.doOnNext {
-                logger.info("BankAccountService:transformLegacyBankAccount: [RECEIVED] $it")
-            }
-                .map {
-                    mapper.readValue(it, EventDbz::class.java)
-                }
-                .map {
-                    it.payload.transformPersistRequestBankAccount()
-                }
-                .doOnNext {
-                    logger.info("BankAccountService:transformLegacyBankAccount: [TRANSFORMED] $it")
-                }
-                .map {
-                    mapper.writeValueAsString(it)
-                }
-                .doOnNext {
-                    logger.info("BankAccountService:transformLegacyBankAccount: [PROCESSED] $it")
-                }
-                .doOnError {
-                    logger.error("BankAccountService:transformLegacyBankAccount $it")
                 }
         }
     }

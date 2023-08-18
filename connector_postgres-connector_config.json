@@ -16,6 +16,7 @@
     "mode": "bulk",
     "timestamp.column.name": "",
     "table.types": "TABLE",
-    "topic.prefix": "postgresql_"
+    "topic.prefix": "postgresql_",
+    "decimal.handling.mode": "STRING"
   }
 }

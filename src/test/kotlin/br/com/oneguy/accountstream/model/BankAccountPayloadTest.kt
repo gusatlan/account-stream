@@ -5,6 +5,7 @@ import br.com.oneguy.accountstream.mapper.transformPersistRequestBankAccount
 import br.com.oneguy.accountstream.model.kafkaconnect.BankAccountPayload
 import br.com.oneguy.accountstream.model.persist.EventTypeEnum
 import br.com.oneguy.accountstream.util.mapper
+import br.com.oneguy.accountstream.util.toEpoch
 import br.com.oneguy.accountstream.utils.storeJson
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -18,10 +19,10 @@ class BankAccountPayloadTest {
         return BankAccountPayload(
             customerId = "zzz",
             accountId = 333,
-            since = since,
-            expiredAt = since.plusDays(10),
-            createdAt = since,
-            updatedAt = if (updated) since.plusDays(1) else null
+            since = since.toEpoch(),
+            expiredAt = since.plusDays(10).toEpoch(),
+            createdAt = since.toEpoch(),
+            updatedAt = if (updated) since.plusDays(1).toEpoch() else since.toEpoch()
         )
     }
 
@@ -38,7 +39,7 @@ class BankAccountPayloadTest {
 
         Assertions.assertEquals(obj1, unmarshall1)
         Assertions.assertEquals(obj2, unmarshall2)
-        Assertions.assertNull(obj1.updatedAt)
+        Assertions.assertEquals(obj1.updatedAt, obj1.createdAt)
         Assertions.assertNotNull(obj2.updatedAt)
 
         storeJson(json=json1, prefixName = "bank_account_pu_1")

@@ -33,7 +33,7 @@ spring:
               level: read_committed
           brokers: ${KAFKA_HOST}
       function:
-        definition: upsertBankAccountPersist;upsertBankAccountEventPersist;transformLegacyBankAccount;transformLegacyBankAccountEvent;transformLegacyBankAccountConnect;transformLegacyBankAccountEventConnect
+        definition: upsertBankAccountPersist;upsertBankAccountEventPersist;transformLegacyBankAccountConnect;transformLegacyBankAccountEventConnect
       bindings:
         upsertBankAccountPersist-in-0:
           destination: account-upsert-bank-account
@@ -50,20 +50,6 @@ spring:
           destination: account-upsert-bank-account-event-success
           group: account-bank-account-event
           contentType: application/json
-
-        transformLegacyBankAccount-in-0:
-          destination: database-bank-account
-          group: account-bank-account
-        transformLegacyBankAccount-out-0:
-          destination: account-upsert-bank-account
-          group: account-bank-account
-
-        transformLegacyBankAccountEvent-in-0:
-          destination: database-bank-account-event
-          group: account-bank-account-event
-        transformLegacyBankAccountEvent-out-0:
-          destination: account-upsert-bank-account-event
-          group: account-bank-account-event
 
         transformLegacyBankAccountConnect-in-0:
           destination: postgresql_account

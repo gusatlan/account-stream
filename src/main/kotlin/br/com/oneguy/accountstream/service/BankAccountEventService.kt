@@ -2,33 +2,58 @@ package br.com.oneguy.accountstream.service
 
 import br.com.oneguy.accountstream.mapper.transform
 import br.com.oneguy.accountstream.mapper.transformPersistRequestBankAccountEvent
-import br.com.oneguy.accountstream.model.debezium.EventDbz
 import br.com.oneguy.accountstream.model.dto.PersistRequestBankAccountEventDTO
 import br.com.oneguy.accountstream.model.kafkaconnect.BankAccountTransactionMessage
-import br.com.oneguy.accountstream.model.kafkaconnect.BankAccountTransactionPayload
+import br.com.oneguy.accountstream.model.persist.BankAccount
 import br.com.oneguy.accountstream.model.persist.BankAccountEvent
 import br.com.oneguy.accountstream.model.persist.EventTypeEnum
+import br.com.oneguy.accountstream.model.persist.id.BankAccountEventId
 import br.com.oneguy.accountstream.repository.BankAccountEventRepository
+import br.com.oneguy.accountstream.repository.BankAccountRepository
+import br.com.oneguy.accountstream.util.cleanCodeText
 import br.com.oneguy.accountstream.util.mapper
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 import java.util.function.Function
 
 @Service
 class BankAccountEventService(
-    private val repository: BankAccountEventRepository
+    private val repository: BankAccountEventRepository,
+    private val bankAccountRepository: BankAccountRepository
 ) {
 
     companion object {
         private val logger = LoggerFactory.getLogger(this::class.java)
     }
 
+    private fun findBankAccount(accountId: String): Mono<BankAccount> {
+        return bankAccountRepository
+            .findByIdAccountId(cleanCodeText(accountId).lowercase())
+            .toMono()
+            .doOnNext {
+                logger.debug("findBankAccount [$accountId]: $it")
+            }
+    }
+
     private fun save(value: BankAccountEvent): Mono<BankAccountEvent> {
-        return repository
-            .save(value)
+        return findBankAccount(value.id.accountId)
+            .map {
+                BankAccountEvent(
+                    id = BankAccountEventId(
+                        customerId = it.id.customerId,
+                        accountId = value.id.accountId,
+                        eventId = value.id.eventId
+                    ),
+                    type = value.type,
+                    date = value.date,
+                    value = value.value
+                )
+            }
+            .flatMap(repository::save)
             .doOnNext {
                 logger.info("BankAccountEventService:save saved with success $value")
             }
@@ -90,40 +115,13 @@ class BankAccountEventService(
     }
 
     @Bean
-    fun transformLegacyBankAccountEvent(): Function<Flux<String>, Flux<String>> {
-        return Function { dbEvent ->
-            dbEvent.doOnNext {
-                logger.info("BankAccountEventService:transformLegacyBankAccountEvent: [RECEIVED] $it")
-            }
-                .map {
-                    mapper.readValue(it, BankAccountTransactionMessage::class.java)
-                }
-                .map {
-                    it.payload.transformPersistRequestBankAccountEvent()
-                }
-                .doOnNext {
-                    logger.info("BankAccountEventService:transformLegacyBankAccountEvent: [TRANSFORMED] $it")
-                }
-                .map {
-                    mapper.writeValueAsString(it)
-                }
-                .doOnNext {
-                    logger.info("BankAccountEventService:transformLegacyBankAccountEvent: [PROCESSED] $it")
-                }
-                .doOnError {
-                    logger.error("BankAccountEventService:transformLegacyBankAccountEvent $it")
-                }
-        }
-    }
-
-    @Bean
     fun transformLegacyBankAccountEventConnect(): Function<Flux<String>, Flux<String>> {
         return Function { dbEvent ->
             dbEvent.doOnNext {
                 logger.info("BankAccountEventService:transformLegacyBankAccountEventConnect: [RECEIVED] $it")
             }
                 .map {
-                    mapper.readValue(it, BankAccountTransactionPayload::class.java)
+                    mapper.readValue(it, BankAccountTransactionMessage::class.java).payload
                 }
                 .map {
                     it.transformPersistRequestBankAccountEvent()
@@ -142,5 +140,4 @@ class BankAccountEventService(
                 }
         }
     }
-
 }

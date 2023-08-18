@@ -3,9 +3,12 @@ package br.com.oneguy.accountstream.util
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import java.math.BigDecimal
+import java.math.BigInteger
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.*
 
 val mapper = buildMapper()
@@ -45,6 +48,15 @@ fun cleanCodeTextWithoutUnderscore(text: String?): String {
     }
 }
 
-fun Long.toLocalDateTime() : LocalDateTime {
-    return LocalDateTime.ofInstant(Instant.ofEpochMilli(this), ZoneId.systemDefault())
+fun Long.toLocalDateTime(): LocalDateTime =
+    LocalDateTime.ofInstant(Instant.ofEpochMilli(this), ZoneId.systemDefault())
+
+fun LocalDateTime.toEpoch() : Long =
+    ZonedDateTime.of(this, ZoneId.systemDefault()).toInstant().toEpochMilli()
+
+
+fun String.fromDecimalToBigDecimal(scale: Int = 4) = BigDecimal(BigInteger(Base64.getDecoder().decode(this)), scale)
+
+fun BigDecimal.toDecimalString(scale: Int = 4) : String {
+    return Base64.getEncoder().encodeToString(this.multiply(BigDecimal.TEN.pow(scale)).toBigInteger().toByteArray())
 }

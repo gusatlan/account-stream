@@ -70,7 +70,6 @@ class BankAccountTest {
         Assertions.assertEquals(obj, unmarshall)
     }
 
-
     @Test
     fun shouldMarshallUnmarshallPersistRequest() {
         val obj1 = PersistRequestBankAccountDTO(
@@ -90,5 +89,4 @@ class BankAccountTest {
         Assertions.assertEquals(obj1.entity.id, unmarshall.entity.id)
         Assertions.assertEquals(obj1.entity, unmarshall.entity)
     }
-
 }

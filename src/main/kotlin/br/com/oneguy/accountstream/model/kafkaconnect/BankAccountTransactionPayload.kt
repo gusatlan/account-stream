@@ -11,7 +11,7 @@ class BankAccountTransactionPayload(
     @field:JsonProperty("transaction_date")
     val date: Long = 0L,
     @field:JsonProperty("transaction_value")
-    val value: BigDecimal = BigDecimal.ZERO,
+    val value: String = "",
     @field:JsonProperty("account_id")
     val accountId: Long = -1,
     @field:JsonProperty("created_at")

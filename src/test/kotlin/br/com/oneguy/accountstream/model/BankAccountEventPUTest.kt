@@ -2,11 +2,12 @@ package br.com.oneguy.accountstream.model
 
 import br.com.oneguy.accountstream.mapper.transform
 import br.com.oneguy.accountstream.mapper.transformPersistRequestBankAccountEvent
-import br.com.oneguy.accountstream.model.kafkaconnect.BankAccountPayload
 import br.com.oneguy.accountstream.model.kafkaconnect.BankAccountTransactionEnum
 import br.com.oneguy.accountstream.model.kafkaconnect.BankAccountTransactionPayload
 import br.com.oneguy.accountstream.model.persist.EventTypeEnum
 import br.com.oneguy.accountstream.util.mapper
+import br.com.oneguy.accountstream.util.toDecimalString
+import br.com.oneguy.accountstream.util.toEpoch
 import br.com.oneguy.accountstream.utils.storeJson
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -20,26 +21,20 @@ class BankAccountEventPUTest {
         accountId: Long = 333,
         transactionId: Long = 123,
         type: BankAccountTransactionEnum = BankAccountTransactionEnum.DEPOSIT,
-        value: BigDecimal = BigDecimal("1543.28"),
+        value: BigDecimal = BigDecimal("1543.2800"),
         createdAt: LocalDateTime = LocalDateTime.now(),
         updateAt: LocalDateTime? = null
     ): BankAccountTransactionPayload {
         val date = LocalDateTime.of(2023, 8, 5, 8, 22)
 
         return BankAccountTransactionPayload(
-            account = BankAccountPayload(
-                customerId = customerId,
-                accountId = accountId,
-                since = date,
-                createdAt = date,
-                updatedAt = date
-            ),
             transactionId = transactionId,
-            type = type,
-            date = date,
-            value = value,
-            createdAt = createdAt,
-            updatedAt = updateAt
+            accountId = accountId,
+            type = type.ordinal,
+            createdAt = createdAt.toEpoch(),
+            date = date.toEpoch(),
+            updatedAt = updateAt?.toEpoch() ?: createdAt.toEpoch(),
+            value = value.toDecimalString()
         )
     }
 
@@ -60,20 +55,21 @@ class BankAccountEventPUTest {
 
         Assertions.assertEquals(obj1, unmarshall1)
         Assertions.assertEquals(obj2, unmarshall2)
-        Assertions.assertNull(obj1.updatedAt)
+        Assertions.assertNotNull(obj1.updatedAt)
         Assertions.assertNotNull(obj2.updatedAt)
 
-        storeJson(json=json1, prefixName = "bank_account_event_pu_1")
-        storeJson(json=json2, prefixName = "bank_account_event_pu_2")
+        storeJson(json = json1, prefixName = "bank_account_event_pu_1")
+        storeJson(json = json2, prefixName = "bank_account_event_pu_2")
     }
 
     @Test
     fun shouldTransformPersistEvent() {
+        val value = BigDecimal("0.2300")
         val obj1 = createBankAccountEvent()
         val obj2 = createBankAccountEvent(
             type = BankAccountTransactionEnum.WITHDRAWN,
-            value = BigDecimal("0.23"),
-            updateAt = LocalDateTime.now()
+            value = value,
+            updateAt = LocalDateTime.now().plusHours(2L)
         )
 
         val transform1 = obj1.transformPersistRequestBankAccountEvent()
@@ -84,5 +80,7 @@ class BankAccountEventPUTest {
 
         Assertions.assertEquals(obj1.transform(), transform1.entity)
         Assertions.assertEquals(obj2.transform(), transform2.entity)
+
+        Assertions.assertEquals(value, transform2.entity.value)
     }
 }
